@@ -1,0 +1,9 @@
+name = "code-horizon-project"
+main = "_worker.js"
+compatibility_date = "2025-08-27"
+
+# Serve static assets from the Vite build output directory
+assets = { directory = "./dist", binding = "ASSETS" }
+
+# To bind to a custom domain, set routes via the Cloudflare dashboard or add a route here:
+# routes = [ { pattern = "freddiephilpot.dev/*", zone_id = "66b3768f50d339fde0f526f513be8d4d" } ]
