@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 import { motion } from 'framer-motion';
 import { Linkedin, Github, Twitter } from 'lucide-react';
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -107,6 +108,7 @@ export const Layout = ({ children }: LayoutProps) => {
           {children}
         </motion.div>
         <Analytics/>
+        <SpeedInsights/>
       </main>
     </div>
   );
