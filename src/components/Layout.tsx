@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Analytics } from "@vercel/analytics/next"
 import { motion } from 'framer-motion';
 import { Linkedin, Github, Twitter } from 'lucide-react';
 
@@ -105,6 +106,7 @@ export const Layout = ({ children }: LayoutProps) => {
         >
           {children}
         </motion.div>
+        <Analytics/>
       </main>
     </div>
   );
