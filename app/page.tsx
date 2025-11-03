@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { PerformanceProvider } from "@/lib/performance-context";
 import { PerformanceNotification } from "@/components/PerformanceNotification";
+import { PerformanceToggle } from "@/components/PerformanceToggle";
 import { detectDeviceCapabilities, needsPerformanceOptimizations } from "@/lib/device-detection";
 
 function HomeContent() {
@@ -58,6 +59,12 @@ function HomeContent() {
     localStorage.setItem('performanceOptimizationsChoice', 'enabled');
   };
 
+  const handlePerformanceModeChange = (mode: 'high' | 'low') => {
+    const isLowMode = mode === 'low';
+    setPerformanceEnabled(isLowMode);
+    localStorage.setItem('performanceOptimizationsChoice', isLowMode ? 'enabled' : 'ignored');
+  };
+
   return (
     <div className="fixed inset-0 w-full h-full">
       {/* Dither background layer with performance optimizations */}
@@ -97,20 +104,26 @@ function HomeContent() {
           >
             <div className="w-full flex items-center justify-between text-white">
               <span className="text-lg font-medium">freddiephilpot.dev</span>
-              <nav className="flex items-center gap-8">
-                <a href="#home" className="text-sm hover:opacity-70 transition-opacity">
-                  Home
-                </a>
-                <a href="#work" className="text-sm hover:opacity-70 transition-opacity">
-                  Work
-                </a>
-                <a href="#homelab" className="text-sm hover:opacity-70 transition-opacity">
-                  Homelab
-                </a>
-                <a href="#contact" className="text-sm hover:opacity-70 transition-opacity">
-                  Contact
-                </a>
-              </nav>
+              <div className="flex items-center gap-8">
+                <nav className="flex items-center gap-8">
+                  <a href="#home" className="text-sm hover:opacity-70 transition-opacity">
+                    Home
+                  </a>
+                  <a href="#work" className="text-sm hover:opacity-70 transition-opacity">
+                    Work
+                  </a>
+                  <a href="#homelab" className="text-sm hover:opacity-70 transition-opacity">
+                    Homelab
+                  </a>
+                  <a href="#contact" className="text-sm hover:opacity-70 transition-opacity">
+                    Contact
+                  </a>
+                </nav>
+                <PerformanceToggle 
+                  currentMode={performanceEnabled ? 'low' : 'high'}
+                  onModeChange={handlePerformanceModeChange}
+                />
+              </div>
             </div>
           </GlassSurface>
         </div>
