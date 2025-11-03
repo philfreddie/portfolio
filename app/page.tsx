@@ -68,7 +68,7 @@ function HomeContent() {
   return (
     <div className="fixed inset-0 w-full h-full">
       {/* Dither background layer with performance optimizations */}
-      <div className="fixed inset-0 w-full h-full">
+      <div className="fixed inset-0 w-full h-full z-0">
         <Dither
           waveColor={[0.5, 0.5, 0.5]}
           disableAnimation={false}
