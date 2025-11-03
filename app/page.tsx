@@ -95,7 +95,7 @@ function HomeContent() {
         easing="ease-out"
       >
         {/* Glass Navbar */}
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 w-3/4 z-10">
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 w-3/4 z-50">
           <GlassSurface
             width="100%"
             height={64}
