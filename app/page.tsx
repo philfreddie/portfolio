@@ -1,17 +1,64 @@
 'use client';
-import Dither from "@/components/Dither";
+import { useState, useEffect } from 'react';
+import DitherOptimized from "@/components/DitherOptimized";
 import GlassSurface from "@/components/GlassSurface";
 import ClickSpark from "@/components/ClickSpark";
 import TextPressure from "@/components/TextPressure";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { PerformanceProvider, usePerformance } from "@/lib/performance-context";
+import { PerformanceNotification } from "@/components/PerformanceNotification";
+import { detectDeviceCapabilities, needsPerformanceOptimizations } from "@/lib/device-detection";
 
-export default function Home() {
+function HomeContent() {
+  const [showNotification, setShowNotification] = useState(false);
+  const [deviceNeedsOptimization, setDeviceNeedsOptimization] = useState(false);
+  const [performanceEnabled, setPerformanceEnabled] = useState(false);
+  const [dprRange, setDprRange] = useState<[number, number]>([1, 1.5]);
+
+  useEffect(() => {
+    // Detect device on mount
+    const capabilities = detectDeviceCapabilities();
+    const needsOpt = needsPerformanceOptimizations(capabilities);
+    setDeviceNeedsOptimization(needsOpt);
+
+    // Check if user previously made a choice
+    const userChoice = localStorage.getItem('performanceOptimizationsChoice');
+    
+    if (needsOpt && !userChoice) {
+      // Show notification if device needs optimization and user hasn't chosen yet
+      setShowNotification(true);
+    } else if (userChoice === 'enabled') {
+      setPerformanceEnabled(true);
+    }
+
+    // Set DPR based on device
+    if (capabilities.isLowEnd) {
+      setDprRange([1, 1.25]);
+    } else if (capabilities.isMidTier) {
+      setDprRange([1, 1.5]);
+    } else {
+      setDprRange([1, 2]);
+    }
+  }, []);
+
+  const handleIgnoreOptimizations = () => {
+    setShowNotification(false);
+    setPerformanceEnabled(false);
+    localStorage.setItem('performanceOptimizationsChoice', 'ignored');
+  };
+
+  const handleAcceptOptimizations = () => {
+    setShowNotification(false);
+    setPerformanceEnabled(true);
+    localStorage.setItem('performanceOptimizationsChoice', 'enabled');
+  };
+
   return (
     <div className="fixed inset-0 w-full h-full">
-      {/* Dither background layer */}
+      {/* Dither background layer with performance optimizations */}
       <div className="fixed inset-0 w-full h-full">
-        <Dither
+        <DitherOptimized
           waveColor={[0.5, 0.5, 0.5]}
           disableAnimation={false}
           enableMouseInteraction={true}
@@ -20,6 +67,10 @@ export default function Home() {
           waveAmplitude={0.3}
           waveFrequency={3}
           waveSpeed={0.05}
+          enablePostProcessing={!performanceEnabled || !deviceNeedsOptimization}
+          enableAdaptivePerformance={performanceEnabled}
+          dprRange={dprRange}
+          enableAntialiasing={!performanceEnabled}
         />
       </div>
 
@@ -91,6 +142,22 @@ export default function Home() {
           </Button>
         </div>
       </ClickSpark>
+
+      {/* Performance Notification */}
+      {showNotification && deviceNeedsOptimization && (
+        <PerformanceNotification
+          onIgnore={handleIgnoreOptimizations}
+          onAccept={handleAcceptOptimizations}
+        />
+      )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <PerformanceProvider>
+      <HomeContent />
+    </PerformanceProvider>
   );
 }
