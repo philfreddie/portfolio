@@ -1,8 +1,11 @@
-import { useRef, useState, useEffect, forwardRef } from 'react';
-import { Canvas, useFrame, useThree, ThreeEvent } from '@react-three/fiber';
+'use client';
+
+import { useRef, useState, useEffect, forwardRef, useMemo } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { EffectComposer, wrapEffect } from '@react-three/postprocessing';
 import { Effect } from 'postprocessing';
 import * as THREE from 'three';
+import { useAdaptiveDpr, useAdaptiveLowMode, useCanvasVisibility } from '@/lib/performance-hooks';
 
 const waveVertexShader = `
 precision highp float;
@@ -132,9 +135,9 @@ void mainImage(in vec4 inputColor, in vec2 uv, out vec4 outputColor) {
 `;
 
 class RetroEffectImpl extends Effect {
-  public uniforms: Map<string, THREE.Uniform<any>>;
+  public uniforms: Map<string, THREE.Uniform>;
   constructor() {
-    const uniforms = new Map<string, THREE.Uniform<any>>([
+    const uniforms = new Map<string, THREE.Uniform>([
       ['colorNum', new THREE.Uniform(4.0)],
       ['pixelSize', new THREE.Uniform(2.0)]
     ]);
@@ -145,26 +148,27 @@ class RetroEffectImpl extends Effect {
     this.uniforms.get('colorNum')!.value = value;
   }
   get colorNum(): number {
-    return this.uniforms.get('colorNum')!.value;
+    return this.uniforms.get('colorNum')!.value as number;
   }
   set pixelSize(value: number) {
     this.uniforms.get('pixelSize')!.value = value;
   }
   get pixelSize(): number {
-    return this.uniforms.get('pixelSize')!.value;
+    return this.uniforms.get('pixelSize')!.value as number;
   }
 }
 
+const WrappedRetroEffect = wrapEffect(RetroEffectImpl);
+
 const RetroEffect = forwardRef<RetroEffectImpl, { colorNum: number; pixelSize: number }>((props, ref) => {
   const { colorNum, pixelSize } = props;
-  const WrappedRetroEffect = wrapEffect(RetroEffectImpl);
   return <WrappedRetroEffect ref={ref} colorNum={colorNum} pixelSize={pixelSize} />;
 });
 
 RetroEffect.displayName = 'RetroEffect';
 
 interface WaveUniforms {
-  [key: string]: THREE.Uniform<any>;
+  [key: string]: THREE.Uniform;
   time: THREE.Uniform<number>;
   resolution: THREE.Uniform<THREE.Vector2>;
   waveSpeed: THREE.Uniform<number>;
@@ -186,6 +190,9 @@ interface DitheredWavesProps {
   disableAnimation: boolean;
   enableMouseInteraction: boolean;
   mouseRadius: number;
+  enablePostProcessing: boolean;
+  enableAdaptivePerformance: boolean;
+  dprRange: [number, number];
 }
 
 function DitheredWaves({
@@ -197,13 +204,21 @@ function DitheredWaves({
   pixelSize,
   disableAnimation,
   enableMouseInteraction,
-  mouseRadius
+  mouseRadius,
+  enablePostProcessing,
+  enableAdaptivePerformance,
+  dprRange
 }: DitheredWavesProps) {
   const mesh = useRef<THREE.Mesh>(null);
   const mouseRef = useRef(new THREE.Vector2());
   const { viewport, size, gl } = useThree();
 
-  const waveUniformsRef = useRef<WaveUniforms>({
+  // Adaptive performance hooks
+  useAdaptiveDpr(55, dprRange[0], dprRange[1], enableAdaptivePerformance);
+  const adaptiveLowMode = useAdaptiveLowMode(40, 55, enableAdaptivePerformance);
+
+  // Memoize uniforms to avoid recreating on every render
+  const waveUniforms = useMemo<WaveUniforms>(() => ({
     time: new THREE.Uniform(0),
     resolution: new THREE.Uniform(new THREE.Vector2(0, 0)),
     waveSpeed: new THREE.Uniform(waveSpeed),
@@ -213,17 +228,28 @@ function DitheredWaves({
     mousePos: new THREE.Uniform(new THREE.Vector2(0, 0)),
     enableMouseInteraction: new THREE.Uniform(enableMouseInteraction ? 1 : 0),
     mouseRadius: new THREE.Uniform(mouseRadius)
-  });
+  }), []);
+
+  // Memoize geometry and material
+  const planeGeometry = useMemo(() => new THREE.PlaneGeometry(1, 1), []);
+  const shaderMaterial = useMemo(
+    () => new THREE.ShaderMaterial({
+      vertexShader: waveVertexShader,
+      fragmentShader: waveFragmentShader,
+      uniforms: waveUniforms
+    }),
+    [waveUniforms]
+  );
 
   useEffect(() => {
     const dpr = gl.getPixelRatio();
     const newWidth = Math.floor(size.width * dpr);
     const newHeight = Math.floor(size.height * dpr);
-    const currentRes = waveUniformsRef.current.resolution.value;
+    const currentRes = waveUniforms.resolution.value;
     if (currentRes.x !== newWidth || currentRes.y !== newHeight) {
       currentRes.set(newWidth, newHeight);
     }
-  }, [size, gl]);
+  }, [size, gl, waveUniforms]);
 
   // Add global mouse listener for pointer events
   useEffect(() => {
@@ -241,7 +267,7 @@ function DitheredWaves({
 
   const prevColor = useRef([...waveColor]);
   useFrame(({ clock }) => {
-    const u = waveUniformsRef.current;
+    const u = waveUniforms;
 
     if (!disableAnimation) {
       u.time.value = clock.getElapsedTime();
@@ -266,18 +292,13 @@ function DitheredWaves({
 
   return (
     <>
-      <mesh ref={mesh} scale={[viewport.width, viewport.height, 1]}>
-        <planeGeometry args={[1, 1]} />
-        <shaderMaterial
-          vertexShader={waveVertexShader}
-          fragmentShader={waveFragmentShader}
-          uniforms={waveUniformsRef.current}
-        />
-      </mesh>
+      <mesh ref={mesh} scale={[viewport.width, viewport.height, 1]} geometry={planeGeometry} material={shaderMaterial} />
 
-      <EffectComposer>
-        <RetroEffect colorNum={colorNum} pixelSize={pixelSize} />
-      </EffectComposer>
+      {enablePostProcessing && !adaptiveLowMode && (
+        <EffectComposer multisampling={0}>
+          <RetroEffect colorNum={colorNum} pixelSize={pixelSize} />
+        </EffectComposer>
+      )}
     </>
   );
 }
@@ -292,6 +313,10 @@ interface DitherProps {
   disableAnimation?: boolean;
   enableMouseInteraction?: boolean;
   mouseRadius?: number;
+  enablePostProcessing?: boolean;
+  enableAdaptivePerformance?: boolean;
+  dprRange?: [number, number];
+  enableAntialiasing?: boolean;
 }
 
 export default function Dither({
@@ -303,26 +328,47 @@ export default function Dither({
   pixelSize = 2,
   disableAnimation = false,
   enableMouseInteraction = true,
-  mouseRadius = 1
+  mouseRadius = 1,
+  enablePostProcessing = true,
+  enableAdaptivePerformance = true,
+  dprRange = [1, 1.5],
+  enableAntialiasing = false
 }: DitherProps) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const isVisible = useCanvasVisibility(canvasRef, 0.05);
+
+  // Determine frameloop based on visibility and animation
+  const frameloop = isVisible && !disableAnimation ? 'always' : 'demand';
+
   return (
-    <Canvas
-      className="w-full h-full relative"
-      camera={{ position: [0, 0, 6] }}
-      dpr={1}
-      gl={{ antialias: true, preserveDrawingBuffer: true }}
-    >
-      <DitheredWaves
-        waveSpeed={waveSpeed}
-        waveFrequency={waveFrequency}
-        waveAmplitude={waveAmplitude}
-        waveColor={waveColor}
-        colorNum={colorNum}
-        pixelSize={pixelSize}
-        disableAnimation={disableAnimation}
-        enableMouseInteraction={enableMouseInteraction}
-        mouseRadius={mouseRadius}
-      />
-    </Canvas>
+    <div ref={canvasRef} className="w-full h-full">
+      <Canvas
+        className="w-full h-full relative"
+        camera={{ position: [0, 0, 6] }}
+        dpr={dprRange}
+        gl={{ 
+          antialias: enableAntialiasing, 
+          preserveDrawingBuffer: true,
+          powerPreference: 'high-performance'
+        }}
+        frameloop={frameloop}
+        shadows={false}
+      >
+        <DitheredWaves
+          waveSpeed={waveSpeed}
+          waveFrequency={waveFrequency}
+          waveAmplitude={waveAmplitude}
+          waveColor={waveColor}
+          colorNum={colorNum}
+          pixelSize={pixelSize}
+          disableAnimation={disableAnimation}
+          enableMouseInteraction={enableMouseInteraction}
+          mouseRadius={mouseRadius}
+          enablePostProcessing={enablePostProcessing}
+          enableAdaptivePerformance={enableAdaptivePerformance}
+          dprRange={dprRange}
+        />
+      </Canvas>
+    </div>
   );
 }
