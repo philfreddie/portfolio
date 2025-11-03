@@ -1,12 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
-import DitherOptimized from "@/components/DitherOptimized";
+import Dither from "@/components/Dither";
 import GlassSurface from "@/components/GlassSurface";
 import ClickSpark from "@/components/ClickSpark";
 import TextPressure from "@/components/TextPressure";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { PerformanceProvider, usePerformance } from "@/lib/performance-context";
+import { PerformanceProvider } from "@/lib/performance-context";
 import { PerformanceNotification } from "@/components/PerformanceNotification";
 import { detectDeviceCapabilities, needsPerformanceOptimizations } from "@/lib/device-detection";
 
@@ -20,8 +20,7 @@ function HomeContent() {
     // Detect device on mount
     const capabilities = detectDeviceCapabilities();
     const needsOpt = needsPerformanceOptimizations(capabilities);
-    setDeviceNeedsOptimization(needsOpt);
-
+    
     // Check if user previously made a choice
     const userChoice = localStorage.getItem('performanceOptimizationsChoice');
     
@@ -33,13 +32,18 @@ function HomeContent() {
     }
 
     // Set DPR based on device
+    let newDprRange: [number, number] = [1, 1.5];
     if (capabilities.isLowEnd) {
-      setDprRange([1, 1.25]);
+      newDprRange = [1, 1.25];
     } else if (capabilities.isMidTier) {
-      setDprRange([1, 1.5]);
+      newDprRange = [1, 1.5];
     } else {
-      setDprRange([1, 2]);
+      newDprRange = [1, 2];
     }
+
+    // Batch state updates
+    setDeviceNeedsOptimization(needsOpt);
+    setDprRange(newDprRange);
   }, []);
 
   const handleIgnoreOptimizations = () => {
@@ -58,7 +62,7 @@ function HomeContent() {
     <div className="fixed inset-0 w-full h-full">
       {/* Dither background layer with performance optimizations */}
       <div className="fixed inset-0 w-full h-full">
-        <DitherOptimized
+        <Dither
           waveColor={[0.5, 0.5, 0.5]}
           disableAnimation={false}
           enableMouseInteraction={true}
@@ -128,7 +132,7 @@ function HomeContent() {
             />
           </div>
           <p className="text-white text-lg text-center px-4 font-semibold tracking-wide font-sans">
-            I'm Freddie a 15 year old student who is studying Cyber Security
+            I&apos;m Freddie a 15 year old student who is studying Cyber Security
           </p>
         </div>
 

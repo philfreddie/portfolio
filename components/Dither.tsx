@@ -135,9 +135,9 @@ void mainImage(in vec4 inputColor, in vec2 uv, out vec4 outputColor) {
 `;
 
 class RetroEffectImpl extends Effect {
-  public uniforms: Map<string, THREE.Uniform<any>>;
+  public uniforms: Map<string, THREE.Uniform>;
   constructor() {
-    const uniforms = new Map<string, THREE.Uniform<any>>([
+    const uniforms = new Map<string, THREE.Uniform>([
       ['colorNum', new THREE.Uniform(4.0)],
       ['pixelSize', new THREE.Uniform(2.0)]
     ]);
@@ -148,26 +148,27 @@ class RetroEffectImpl extends Effect {
     this.uniforms.get('colorNum')!.value = value;
   }
   get colorNum(): number {
-    return this.uniforms.get('colorNum')!.value;
+    return this.uniforms.get('colorNum')!.value as number;
   }
   set pixelSize(value: number) {
     this.uniforms.get('pixelSize')!.value = value;
   }
   get pixelSize(): number {
-    return this.uniforms.get('pixelSize')!.value;
+    return this.uniforms.get('pixelSize')!.value as number;
   }
 }
 
+const WrappedRetroEffect = wrapEffect(RetroEffectImpl);
+
 const RetroEffect = forwardRef<RetroEffectImpl, { colorNum: number; pixelSize: number }>((props, ref) => {
   const { colorNum, pixelSize } = props;
-  const WrappedRetroEffect = wrapEffect(RetroEffectImpl);
   return <WrappedRetroEffect ref={ref} colorNum={colorNum} pixelSize={pixelSize} />;
 });
 
 RetroEffect.displayName = 'RetroEffect';
 
 interface WaveUniforms {
-  [key: string]: THREE.Uniform<any>;
+  [key: string]: THREE.Uniform;
   time: THREE.Uniform<number>;
   resolution: THREE.Uniform<THREE.Vector2>;
   waveSpeed: THREE.Uniform<number>;
@@ -213,11 +214,11 @@ function DitheredWaves({
   const { viewport, size, gl } = useThree();
 
   // Adaptive performance hooks
-  const adaptiveDpr = useAdaptiveDpr(55, dprRange[0], dprRange[1], enableAdaptivePerformance);
+  useAdaptiveDpr(55, dprRange[0], dprRange[1], enableAdaptivePerformance);
   const adaptiveLowMode = useAdaptiveLowMode(40, 55, enableAdaptivePerformance);
 
   // Memoize uniforms to avoid recreating on every render
-  const waveUniformsRef = useRef<WaveUniforms>({
+  const waveUniforms = useMemo<WaveUniforms>(() => ({
     time: new THREE.Uniform(0),
     resolution: new THREE.Uniform(new THREE.Vector2(0, 0)),
     waveSpeed: new THREE.Uniform(waveSpeed),
@@ -227,7 +228,7 @@ function DitheredWaves({
     mousePos: new THREE.Uniform(new THREE.Vector2(0, 0)),
     enableMouseInteraction: new THREE.Uniform(enableMouseInteraction ? 1 : 0),
     mouseRadius: new THREE.Uniform(mouseRadius)
-  });
+  }), []);
 
   // Memoize geometry and material
   const planeGeometry = useMemo(() => new THREE.PlaneGeometry(1, 1), []);
@@ -235,20 +236,20 @@ function DitheredWaves({
     () => new THREE.ShaderMaterial({
       vertexShader: waveVertexShader,
       fragmentShader: waveFragmentShader,
-      uniforms: waveUniformsRef.current
+      uniforms: waveUniforms
     }),
-    []
+    [waveUniforms]
   );
 
   useEffect(() => {
     const dpr = gl.getPixelRatio();
     const newWidth = Math.floor(size.width * dpr);
     const newHeight = Math.floor(size.height * dpr);
-    const currentRes = waveUniformsRef.current.resolution.value;
+    const currentRes = waveUniforms.resolution.value;
     if (currentRes.x !== newWidth || currentRes.y !== newHeight) {
       currentRes.set(newWidth, newHeight);
     }
-  }, [size, gl]);
+  }, [size, gl, waveUniforms]);
 
   // Add global mouse listener for pointer events
   useEffect(() => {
@@ -266,7 +267,7 @@ function DitheredWaves({
 
   const prevColor = useRef([...waveColor]);
   useFrame(({ clock }) => {
-    const u = waveUniformsRef.current;
+    const u = waveUniforms;
 
     if (!disableAnimation) {
       u.time.value = clock.getElapsedTime();
