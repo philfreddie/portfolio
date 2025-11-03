@@ -32,7 +32,7 @@ export function PerformanceNotification({ onIgnore, onAccept }: PerformanceNotif
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-md animate-in slide-in-from-bottom-5">
-      <div className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg p-4">
+      <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg p-4">
         <div className="flex items-start gap-3">
           <div className="flex-1">
             <h3 className="font-semibold text-gray-900 mb-1">
@@ -45,7 +45,7 @@ export function PerformanceNotification({ onIgnore, onAccept }: PerformanceNotif
               <Button
                 size="sm"
                 onClick={handleAccept}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-black hover:bg-gray-900 text-white"
               >
                 Enable Optimizations
               </Button>
@@ -53,6 +53,7 @@ export function PerformanceNotification({ onIgnore, onAccept }: PerformanceNotif
                 size="sm"
                 variant="outline"
                 onClick={handleIgnore}
+                className="border-gray-300 hover:bg-gray-100"
               >
                 Keep High Quality
               </Button>
