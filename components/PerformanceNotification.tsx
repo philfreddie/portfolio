@@ -31,41 +31,39 @@ export function PerformanceNotification({ onIgnore, onAccept }: PerformanceNotif
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-md animate-in slide-in-from-bottom-5">
-      <div className="bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg p-4">
-        <div className="flex items-start gap-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-1">
-              Performance Optimizations Available
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              Your device may benefit from performance optimizations. This will reduce visual quality slightly to improve frame rates.
+    <div className="fixed bottom-4 right-4 z-50 w-[min(90vw,18rem)] animate-in slide-in-from-bottom-5">
+      <div className="rounded-xl border border-white/20 bg-black/70 px-3 py-3 shadow-lg backdrop-blur">
+        <div className="flex items-start gap-3 text-white">
+          <div className="flex-1 space-y-1">
+            <p className="text-sm font-semibold">Smooth things out?</p>
+            <p className="text-xs text-white/70">
+              Trim visuals for better battery and frame rate. You can switch back anytime.
             </p>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleAccept}
-                className="bg-black hover:bg-gray-900 text-white"
-              >
-                Enable Optimizations
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleIgnore}
-                className="border-gray-300 hover:bg-gray-100"
-              >
-                Keep High Quality
-              </Button>
-            </div>
           </div>
           <button
             onClick={handleIgnore}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="rounded-full p-1 text-white/60 transition hover:bg-white/10 hover:text-white"
             aria-label="Close notification"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
+        </div>
+        <div className="mt-3 flex gap-2">
+          <Button
+            size="sm"
+            onClick={handleAccept}
+            className="h-8 flex-1 rounded-full bg-white text-black hover:bg-white/90"
+          >
+            Enable
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleIgnore}
+            className="h-8 flex-1 rounded-full border-white/40 bg-transparent text-white hover:bg-white/10"
+          >
+            Later
+          </Button>
         </div>
       </div>
     </div>

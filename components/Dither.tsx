@@ -255,14 +255,44 @@ function DitheredWaves({
   useEffect(() => {
     if (!enableMouseInteraction) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = gl.domElement.getBoundingClientRect();
+    const canvas = gl.domElement;
+    const previousTouchAction = canvas.style.touchAction;
+    canvas.style.touchAction = 'none';
+
+    const updateMousePosition = (clientX: number, clientY: number) => {
+      const rect = canvas.getBoundingClientRect();
       const dpr = gl.getPixelRatio();
-      mouseRef.current.set((e.clientX - rect.left) * dpr, (e.clientY - rect.top) * dpr);
+      mouseRef.current.set((clientX - rect.left) * dpr, (clientY - rect.top) * dpr);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    const handlePointerEvent = (event: PointerEvent) => {
+      if (!event.isPrimary) return;
+      updateMousePosition(event.clientX, event.clientY);
+    };
+
+    const touchListenerOptions: AddEventListenerOptions = { passive: true };
+
+    const handleTouchEvent = (event: TouchEvent) => {
+      const touch = event.touches[0];
+      if (!touch) return;
+      updateMousePosition(touch.clientX, touch.clientY);
+    };
+
+    window.addEventListener('pointermove', handlePointerEvent);
+    window.addEventListener('pointerdown', handlePointerEvent);
+    window.addEventListener('pointerenter', handlePointerEvent);
+
+    canvas.addEventListener('touchstart', handleTouchEvent, touchListenerOptions);
+    canvas.addEventListener('touchmove', handleTouchEvent, touchListenerOptions);
+
+    return () => {
+      canvas.style.touchAction = previousTouchAction;
+      window.removeEventListener('pointermove', handlePointerEvent);
+      window.removeEventListener('pointerdown', handlePointerEvent);
+      window.removeEventListener('pointerenter', handlePointerEvent);
+      canvas.removeEventListener('touchstart', handleTouchEvent, touchListenerOptions);
+      canvas.removeEventListener('touchmove', handleTouchEvent, touchListenerOptions);
+    };
   }, [enableMouseInteraction, gl]);
 
   const prevColor = useRef([...waveColor]);

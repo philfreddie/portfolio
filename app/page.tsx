@@ -95,26 +95,26 @@ function HomeContent() {
         easing="ease-out"
       >
         {/* Glass Navbar */}
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 w-3/4 z-50">
+        <div className="fixed top-4 sm:top-6 md:top-8 left-1/2 -translate-x-1/2 w-full max-w-5xl px-4 sm:px-6 md:px-8 z-50">
           <GlassSurface
             width="100%"
-            height={64}
-            borderRadius={32}
-            className="px-8"
+            height="auto"
+            borderRadius={28}
+            className="px-4 py-3 sm:px-6 sm:py-4"
           >
-            <div className="w-full flex items-center justify-between text-white">
-              <span className="text-lg font-medium">freddiephilpot.dev</span>
-              <nav className="flex items-center gap-8">
-                <a href="#home" className="text-sm hover:opacity-70 transition-opacity">
+            <div className="w-full flex flex-wrap items-center justify-between gap-3 text-white">
+              <span className="text-base font-medium sm:text-lg">freddiephilpot.dev</span>
+              <nav className="flex flex-wrap items-center justify-center gap-4 text-xs sm:gap-6 sm:text-sm md:gap-8 md:justify-end whitespace-nowrap">
+                <a href="#home" className="hover:opacity-70 transition-opacity">
                   Home
                 </a>
-                <a href="#work" className="text-sm hover:opacity-70 transition-opacity">
+                <a href="#work" className="hover:opacity-70 transition-opacity">
                   Work
                 </a>
-                <a href="#homelab" className="text-sm hover:opacity-70 transition-opacity">
+                <a href="#homelab" className="hover:opacity-70 transition-opacity">
                   Homelab
                 </a>
-                <a href="#contact" className="text-sm hover:opacity-70 transition-opacity">
+                <a href="#contact" className="hover:opacity-70 transition-opacity">
                   Contact
                 </a>
               </nav>
@@ -123,8 +123,8 @@ function HomeContent() {
         </div>
 
         {/* Center Content - Hello Text with TextPressure */}
-        <div className="fixed inset-0 flex flex-col items-center justify-center pointer-events-none gap-4">
-          <div style={{ position: 'relative', height: '200px', width: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="fixed inset-0 flex flex-col items-center justify-center pointer-events-none gap-5 px-4">
+          <div className="relative flex h-[140px] w-[min(80vw,320px)] items-center justify-center sm:h-[180px] sm:w-[360px] md:h-[200px] md:w-[420px]">
             <TextPressure
               text="Hello"
               flex={true}
@@ -135,17 +135,17 @@ function HomeContent() {
               italic={true}
               textColor="#ffffff"
               strokeColor="#ff0000"
-              minFontSize={36}
+              minFontSize={28}
             />
           </div>
-          <p className="text-white text-lg text-center px-4 font-semibold tracking-wide font-sans">
+          <p className="pointer-events-auto text-white text-base leading-relaxed text-center font-semibold tracking-wide font-sans sm:text-lg max-w-[min(90vw,520px)]">
             I&apos;m Freddie a 15 year old student who is studying Cyber Security
           </p>
         </div>
 
         {/* Download CV Button */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-10">
-          <Button size="lg" className="rounded-full" asChild>
+        <div className="fixed bottom-6 left-1/2 z-10 w-[min(88vw,320px)] -translate-x-1/2 sm:bottom-8">
+          <Button size="lg" className="w-full rounded-full justify-center text-sm sm:text-base" asChild>
             <a href="/cv.pdf" download="cv.pdf">
               <Download className="mr-2 h-4 w-4" />
               Download CV
@@ -155,7 +155,7 @@ function HomeContent() {
       </ClickSpark>
 
       {/* Performance Toggle Button - Bottom Right */}
-      <div className="fixed bottom-8 right-8 z-[100]">
+      <div className="fixed bottom-24 right-4 z-[100] sm:bottom-8 sm:right-8">
         <PerformanceToggle 
           currentMode={performanceEnabled ? 'low' : 'high'}
           onModeChange={handlePerformanceModeChange}
