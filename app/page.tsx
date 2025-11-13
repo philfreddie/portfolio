@@ -145,12 +145,27 @@ function HomeContent() {
 
         {/* Download CV Button */}
         <div className="fixed bottom-6 left-1/2 z-10 w-[min(88vw,320px)] -translate-x-1/2 sm:bottom-8">
-          <Button size="lg" className="w-full rounded-full justify-center text-sm sm:text-base" asChild>
-            <a href="/cv.pdf" download="cv.pdf">
-              <Download className="mr-2 h-4 w-4" />
-              Download CV
-            </a>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="lg"
+              className="flex-[3] rounded-full justify-center text-sm sm:text-base"
+              asChild
+            >
+              <a href="/cv.pdf" target="_blank" rel="noreferrer">
+                View PDF
+              </a>
+            </Button>
+            <Button
+              size="lg"
+              className="flex-[1] aspect-square rounded-full p-0 transition-transform hover:scale-105"
+              asChild
+            >
+              <a href="/cv.pdf" download="cv.pdf" aria-label="Download CV">
+                <Download className="h-5 w-5" />
+                <span className="sr-only">Download CV</span>
+              </a>
+            </Button>
+          </div>
         </div>
       </ClickSpark>
 
